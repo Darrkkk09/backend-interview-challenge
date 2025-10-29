@@ -5,8 +5,7 @@
   "type": "commonjs",
   "main": "index.js",
 "scripts": {
-  "preinstall": "npm install --include=dev",
-  "build": "npm install --include=dev && tsc",
+  "build": "tsc",
   "start": "node dist/server.js",
   "dev": "nodemon --watch src --exec tsx src/server.ts"
 },
