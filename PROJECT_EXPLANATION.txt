@@ -1,0 +1,114 @@
+BACKEND INTERVIEW CHALLENGE - TYPE SCRIPT IMPLEMENTATION
+=======================================================
+
+OVERVIEW (45 seconds)
+---------------------
+This is a TypeScript backend implementation of an offline-first task management system. 
+The application provides RESTful APIs for task CRUD operations while supporting seamless synchronization
+ between local SQLite database and a remote server. 
+ Built with Express.js, SQLite, and comprehensive test coverage using Vitest.
+
+ARCHITECTURE OVERVIEW (1 minute 15 seconds)
+------------------------------------------
+The system follows a layered architecture with clear separation of concerns:
+
+1. **Database Layer (database.ts)**
+   - SQLite-based 
+   - Two main tables: tasks and sync_queue
+   - Tasks table stores task data with sync status tracking
+   - Sync queue manages pending operations for server synchronization
+
+
+2. **Service Layer**
+   - **TaskService**: Handles all task CRUD operations
+   - **SyncService**: Manages connectivity checking and data synchronization
+   - Both services integrate with the database layer and sync queue
+
+3. **API Layer**
+   - Express.js routes for tasks (/api/tasks) and sync (/api/sync)
+   - Middleware for error handling and request processing
+   - CORS support for cross-origin requests
+
+4. **Testing Layer**
+   - Comprehensive test suite with 17 tests across 3 files
+   - Unit tests for individual services
+   - Integration tests for end-to-end workflows
+   - In-memory database for isolated testing
+
+KEY FEATURES (1 minute 30 seconds)
+----------------------------------
+**Offline-First Design:**
+- All operations work offline with local SQLite storage
+- Changes are queued in sync_queue table
+- Automatic sync when connectivity is restored
+
+**Task Management:**
+- Create, read, update, delete tasks
+- Soft delete functionality (is_deleted flag)
+- Automatic timestamp tracking (created_at, updated_at)
+- Sync status tracking (pending, synced, error)
+
+**Synchronization System:**
+- Connectivity checking via HTTP requests
+- Batch processing of queued operations
+- Conflict resolution using last-write-wins strategy
+- Retry mechanism for failed sync attempts
+
+**Data Integrity:**
+- UUID-based task identification
+- Atomic database operations
+- Transaction support for complex operations
+- Foreign key relationships in sync queue
+
+TECHNICAL IMPLEMENTATION (1 minute 45 seconds)
+---------------------------------------------
+**Database Schema:**
+```sql
+tasks: id, title, description, completed, created_at, updated_at, is_deleted, sync_status, server_id, last_synced_at
+sync_queue: id, task_id, operation, task_data, retry_attempts, status, created_at
+```
+
+**API Endpoints:**
+- GET /api/tasks - Retrieve all non-deleted tasks
+- POST /api/tasks - Create new task
+- PUT /api/tasks/:id - Update existing task
+- DELETE /api/tasks/:id - Soft delete task
+- POST /api/sync - Trigger manual synchronization
+
+**Sync Flow:**
+1. Client performs operations offline
+2. Operations added to sync_queue
+3. When online, sync service processes queue
+4. Batches operations and sends to server
+5. Updates local sync status based on server response
+6. Handles conflicts and retries failures
+
+TESTING STRATEGY (45 seconds)
+-----------------------------
+**Test Coverage:**
+- TaskService: 8 tests covering CRUD operations and sync integration
+- SyncService: 6 tests for connectivity and sync functionality
+- Integration: 3 tests for end-to-end offline/online workflows
+
+**Test Isolation:**
+- In-memory SQLite databases for each test
+- Mocked external dependencies (axios for HTTP calls)
+- Clean database state between tests
+- Comprehensive error scenario testing
+
+DEPLOYMENT & CONFIGURATION (30 seconds)
+---------------------------------------
+**Environment Setup:**
+- Node.js with TypeScript compilation
+- SQLite database (configurable via DATABASE_URL)
+- Environment variables for configuration
+- Development and production build scripts
+
+**Key Dependencies:**
+- express: Web framework
+- sqlite3/sqlite: Database operations
+- axios: HTTP client for sync operations
+- uuid: Unique identifier generation
+- vitest: Testing framework
+
+This implementation demonstrates production-ready patterns for offline-first applications, robust error handling, comprehensive testing, and scalable architecture suitable for real-world deployment.
