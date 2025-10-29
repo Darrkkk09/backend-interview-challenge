@@ -1,63 +1,71 @@
-import { Router, Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { TaskService } from '../services/taskService';
-import { SyncService } from '../services/syncService';
-import { Database } from '../db/database';
 
-export function createTaskRouter(db: Database): Router {
-  const router = Router();
-  const taskService = new TaskService(db);
-  const syncService = new SyncService(db, taskService);
+const router = express.Router();
 
-  // Get all tasks
-  router.get('/', async (req: Request, res: Response) => {
-    try {
-      const tasks = await taskService.getAllTasks();
-      res.json(tasks);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch tasks' });
+// GET all tasks
+router.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const tasks = await TaskService.getAllTasks();
+    res.json(tasks);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET task by ID
+router.get('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const task = await TaskService.getTaskById(req.params.id);
+    if (!task) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
     }
-  });
+    res.json(task);
+  } catch (err) {
+    next(err);
+  }
+});
 
-  // Get single task
-  router.get('/:id', async (req: Request, res: Response) => {
-    try {
-      const task = await taskService.getTask(req.params.id);
-      if (!task) {
-        return res.status(404).json({ error: 'Task not found' });
-      }
-      res.json(task);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch task' });
+// POST create task
+router.post('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const task = await TaskService.createTask(req.body);
+    res.status(201).json(task);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT update task
+router.put('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const updated = await TaskService.updateTask(req.params.id, req.body);
+    if (!updated) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
     }
-  });
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+});
 
-  // Create task
-  router.post('/', async (req: Request, res: Response) => {
-    // TODO: Implement task creation endpoint
-    // 1. Validate request body
-    // 2. Call taskService.createTask()
-    // 3. Return created task
-    res.status(501).json({ error: 'Not implemented' });
-  });
+// DELETE tasks
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const success = await TaskService.deleteTask(req.params.id);
+    if (!success) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
+    }
+    res.status(204).json({
+      "message": 'Task deleted successfully',
+      "check_db" : "http://localhost:3000/api/tasks/"
+    })
+  } catch (err) {
+    next(err);
+  }
+});
 
-  // Update task
-  router.put('/:id', async (req: Request, res: Response) => {
-    // TODO: Implement task update endpoint
-    // 1. Validate request body
-    // 2. Call taskService.updateTask()
-    // 3. Handle not found case
-    // 4. Return updated task
-    res.status(501).json({ error: 'Not implemented' });
-  });
-
-  // Delete task
-  router.delete('/:id', async (req: Request, res: Response) => {
-    // TODO: Implement task deletion endpoint
-    // 1. Call taskService.deleteTask()
-    // 2. Handle not found case
-    // 3. Return success response
-    res.status(501).json({ error: 'Not implemented' });
-  });
-
-  return router;
-}
+export default router;

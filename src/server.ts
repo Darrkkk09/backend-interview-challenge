@@ -1,39 +1,49 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { Database } from './db/database';
-import { createTaskRouter } from './routes/tasks';
-import { createSyncRouter } from './routes/sync';
-import { errorHandler } from './middleware/errorHandler';
+import taskRouter from './routes/tasks';
+import { initDB } from './db/database';
+import syncRouter from './routes/sync';
+import errorHandler from './middleware/errorHandler';
 
-dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
+
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Initialize database
-const db = new Database(process.env.DATABASE_URL || './data/tasks.sqlite3');
-
-// Routes
-app.use('/api/tasks', createTaskRouter(db));
-app.use('/api', createSyncRouter(db));
-
-// Error handling
-app.use(errorHandler);
-
-// Start server
 async function start() {
   try {
-    await db.initialize();
+    // Initialize DB properly
+    const db = await initDB();
     console.log('Database initialized');
-    
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+
+    // Register routes
+    // If your routes don’t need direct db access, just use router directly
+    app.use('/api/tasks', taskRouter);
+    app.use('/api', syncRouter);
+
+    // Error handler
+    app.use(errorHandler);
+
+    app.get('/', (req, res) => {
+      res.send('Welcome to the Task Management API , Move to /api/tasks to manage your tasks.');
     });
+
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+
+    // Graceful shutdown
+    process.on('SIGTERM', async () => {
+      console.log('SIGTERM received, shutting down gracefully');
+      await db.close();
+      process.exit(0);
+    });
+
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
@@ -41,10 +51,3 @@ async function start() {
 }
 
 start();
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  await db.close();
-  process.exit(0);
-});
