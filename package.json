@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon --watch src --exec tsx src/server.ts",
     "build": "tsc",
-    "postinstall": "npm install --include=dev",
+    "prepare": "if [ \"$NODE_ENV\" = \"production\" ]; then npm install --include=dev || true; fi",
     "start": "node dist/server.js",
     "test": "vitest",
     "lint": "eslint src/**/*.ts",
