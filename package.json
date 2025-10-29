@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --watch src --exec tsx src/server.ts",
+    "preinstall": "npm install --include=dev",
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "vitest",
