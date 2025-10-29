@@ -15,7 +15,7 @@ describe('SyncService', () => {
   beforeEach(async () => {
     db = new Database(':memory:');
     await db.initialize();
-    taskService = new TaskService(db);
+    taskService = new TaskService();
     syncService = new SyncService(db, taskService);
   });
 
@@ -26,8 +26,8 @@ describe('SyncService', () => {
 
   describe('checkConnectivity', () => {
     it('should return true when server is reachable', async () => {
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: { status: 'ok' } });
-      
+      vi.mocked(axios.get).mockResolvedValueOnce({ status: 200 });
+
       const isOnline = await syncService.checkConnectivity();
       expect(isOnline).toBe(true);
     });
@@ -42,7 +42,7 @@ describe('SyncService', () => {
 
   describe('addToSyncQueue', () => {
     it('should add operation to sync queue', async () => {
-      const task = await taskService.createTask({ title: 'Test Task' });
+      const task = await TaskService.createTask({ title: 'Test Task' });
       
       await syncService.addToSyncQueue(task.id, 'update', {
         title: 'Updated Title',
@@ -57,8 +57,8 @@ describe('SyncService', () => {
   describe('sync', () => {
     it('should process all items in sync queue', async () => {
       // Create tasks that need syncing
-      const task1 = await taskService.createTask({ title: 'Task 1' });
-      const task2 = await taskService.createTask({ title: 'Task 2' });
+      const task1 = await TaskService.createTask({ title: 'Task 1' });
+      const task2 = await TaskService.createTask({ title: 'Task 2' });
 
       // Mock successful sync response
       vi.mocked(axios.post).mockResolvedValueOnce({
@@ -86,7 +86,7 @@ describe('SyncService', () => {
     });
 
     it('should handle sync failures gracefully', async () => {
-      const task = await taskService.createTask({ title: 'Task' });
+      const task = await TaskService.createTask({ title: 'Task' });
 
       // Mock failed sync
       vi.mocked(axios.post).mockRejectedValueOnce(new Error('Network error'));

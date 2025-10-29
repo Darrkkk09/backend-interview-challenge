@@ -105,4 +105,10 @@ export class TaskService {
 
     return true;
   }
+
+  static async getTasksNeedingSync(): Promise<Task[]> {
+    const db = await initDB();
+    const rows: Task[] = await db.all(`SELECT * FROM tasks WHERE sync_status IN ('pending', 'error')`);
+    return rows.map((row) => ({ ...row, completed: !!row.completed }));
+  }
 }

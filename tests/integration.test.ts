@@ -11,7 +11,7 @@ describe('Integration Tests', () => {
   beforeEach(async () => {
     db = new Database(':memory:');
     await db.initialize();
-    taskService = new TaskService(db);
+    taskService = new TaskService();
     syncService = new SyncService(db, taskService);
   });
 
@@ -23,23 +23,23 @@ describe('Integration Tests', () => {
     it('should handle complete offline to online workflow', async () => {
       // Simulate offline operations
       // 1. Create task while offline
-      const task1 = await taskService.createTask({
+      const task1 = await TaskService.createTask({
         title: 'Offline Task 1',
         description: 'Created while offline',
       });
 
       // 2. Update task while offline
-      await taskService.updateTask(task1.id, {
+      await TaskService.updateTask(task1.id, {
         completed: true,
       });
 
       // 3. Create another task
-      const task2 = await taskService.createTask({
+      const task2 = await TaskService.createTask({
         title: 'Offline Task 2',
       });
 
       // 4. Delete a task
-      await taskService.deleteTask(task2.id);
+      await TaskService.deleteTask(task2.id);
 
       // Verify sync queue has all operations
       const queueItems = await db.all('SELECT * FROM sync_queue ORDER BY created_at');
@@ -60,14 +60,14 @@ describe('Integration Tests', () => {
   describe('Conflict Resolution Scenario', () => {
     it('should handle task edited on multiple devices', async () => {
       // Create a task that's already synced
-      const task = await taskService.createTask({
+      const task = await TaskService.createTask({
         title: 'Shared Task',
         description: 'Task on multiple devices',
       });
 
       // Simulate server having a different version
       // Update locally
-      await taskService.updateTask(task.id, {
+      await TaskService.updateTask(task.id, {
         title: 'Local Update',
         completed: true,
       });
@@ -80,7 +80,7 @@ describe('Integration Tests', () => {
   describe('Error Recovery', () => {
     it('should retry failed sync operations', async () => {
       // Create a task
-      const task = await taskService.createTask({
+      const task = await TaskService.createTask({
         title: 'Task to Sync',
       });
 

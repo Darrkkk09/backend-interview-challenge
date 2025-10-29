@@ -4,7 +4,7 @@ import { TaskService } from '../services/taskService';
 const router = express.Router();
 
 // GET all tasks
-router.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/', async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const tasks = await TaskService.getAllTasks();
     res.json(tasks);

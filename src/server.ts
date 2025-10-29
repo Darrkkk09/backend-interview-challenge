@@ -28,8 +28,13 @@ async function start() {
     // Error handler
     app.use(errorHandler);
 
-    app.get('/', (req, res) => {
+    app.get('/', (_req, res) => {
       res.send('Welcome to the Task Management API , Move to /api/tasks to manage your tasks.');
+    });
+    app.get('/health',(_req, res) => {
+      return res.json({status: 'ok',
+        "timestamp": new Date().toISOString()
+      });
     });
 
     // Start server
