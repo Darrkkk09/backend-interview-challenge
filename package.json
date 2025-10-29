@@ -4,11 +4,11 @@
   "description": "",
   "type": "commonjs",
   "main": "index.js",
-"scripts": {
-  "build": "tsc",
-  "start": "node dist/server.js",
-  "dev": "nodemon --watch src --exec tsx src/server.ts"
-},
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon --watch src --exec tsx src/server.ts"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/senguttuvang/backend-interview-challenge.git"
